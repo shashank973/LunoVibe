@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220%22 width=%2216%22 height=%2216%22><text y=%2214%22 font-size=%2214%22>🎵</text></svg>" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>LunoVibe - Futuristic Emotional Music Ecosystem</title>
+    <meta name="description" content="LunoVibe balances your frequency. A cinematic dashboard combining YouTube Music streaming, real-time procedural audio synthesis, and Indian cultural vibe experiences." />
+    <script>
+      window.onerror = function(message, source, lineno, colno, error) {
+        var div = document.createElement('div');
+        div.style.position = 'fixed';
+        div.style.top = '20px';
+        div.style.left = '20px';
+        div.style.right = '20px';
+        div.style.background = '#fee2e2';
+        div.style.border = '2px solid #ef4444';
+        div.style.color = '#991b1b';
+        div.style.padding = '20px';
+        div.style.zIndex = '999999';
+        div.style.fontFamily = 'monospace';
+        div.style.fontSize = '13px';
+        div.style.borderRadius = '12px';
+        div.style.boxShadow = '0 10px 25px rgba(0,0,0,0.3)';
+        div.style.textAlign = 'left';
+        div.innerHTML = '<h3 style="margin-top:0;margin-bottom:8px;font-size:16px;">🚨 LunoVibe Runtime Exception Detected</h3>' +
+                        '<p style="margin:4px 0;"><b>Error Message:</b> ' + message + '</p>' +
+                        '<p style="margin:4px 0;"><b>Source File:</b> ' + source + ' (Line ' + lineno + ', Col ' + colno + ')</p>' +
+                        (error && error.stack ? '<pre style="margin-top: 10px; background: rgba(0,0,0,0.05); padding: 10px; overflow-x: auto; border-radius:6px; font-size:11px;">' + error.stack + '</pre>' : '');
+        document.body.appendChild(div);
+        return false;
+      };
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>
