@@ -277,19 +277,31 @@ export const PlayerProvider = ({ children }) => {
   const startProgressTracker = () => {
     stopProgressTracker();
     progressIntervalRef.current = setInterval(() => {
-      if (ytPlayerRef.current && ytPlayerRef.current.getCurrentTime) {
-        const currentTime = ytPlayerRef.current.getCurrentTime();
-        setProgress(currentTime);
-
-        // Update active lyrics index
-        const currentLyrics = lyricsRef.current;
-        if (currentLyrics && currentLyrics.length > 0) {
-          const activeIndex = currentLyrics.findIndex((line, i) => {
-            const nextLine = currentLyrics[i + 1];
-            return currentTime >= line.time && (!nextLine || currentTime < nextLine.time);
-          });
-          setCurrentLyricIndex(activeIndex);
+      // Prefer real YT time when available, otherwise advance a local timer
+      if (ytPlayerRef.current && typeof ytPlayerRef.current.getCurrentTime === 'function') {
+        try {
+          const currentTime = ytPlayerRef.current.getCurrentTime();
+          setProgress(currentTime);
+        } catch (e) {
+          // iframe might be blocked; fall through to local timer below
+          setProgress(prev => +(prev + 0.2).toFixed(3));
         }
+      } else {
+        setProgress(prev => +(prev + 0.2).toFixed(3));
+      }
+
+      // Update active lyrics index based on the (possibly local) progress value
+      const now = (typeof ytPlayerRef.current?.getCurrentTime === 'function')
+        ? (ytPlayerRef.current.getCurrentTime ? ytPlayerRef.current.getCurrentTime() : 0)
+        : null;
+      const currentTimeForLyrics = now !== null ? now : (typeof progress === 'number' ? progress : 0);
+      const currentLyrics = lyricsRef.current;
+      if (currentLyrics && currentLyrics.length > 0) {
+        const activeIndex = currentLyrics.findIndex((line, i) => {
+          const nextLine = currentLyrics[i + 1];
+          return currentTimeForLyrics >= line.time && (!nextLine || currentTimeForLyrics < nextLine.time);
+        });
+        setCurrentLyricIndex(activeIndex);
       }
     }, 200);
   };
@@ -302,42 +314,40 @@ export const PlayerProvider = ({ children }) => {
 
   // Mock Synchronized Lyrics Generator for rich immersive UI
   const generateLyrics = (trackTitle) => {
-    const titleText = trackTitle || "Soothing Music";
-    const titleLower = String(titleText).toLowerCase();
-    
-    // Returns timestamped lines (time in seconds)
-    const genericLyrics = [
-      { time: 0, text: "🎵 (Instrumental Intro) 🎵" },
-      { time: 5, text: "Let the vibes wash over your mind..." },
-      { time: 10, text: "Every beat echoing the quiet stars above." },
-      { time: 16, text: "We are travelers on a cosmic frequency." },
-      { time: 22, text: "Take a breath, leave the noise far behind." },
-      { time: 28, text: "And float in the ocean of your own thoughts." },
-      { time: 35, text: "✨ (Instrumental Bridge) ✨" },
-      { time: 45, text: "Can you hear the temple bells in the distance?" },
-      { time: 51, text: "Or the monsoon rain hitting the windows?" },
-      { time: 57, text: "It is all connected, matching your pulse." },
-      { time: 64, text: "Just float... let the worries fade to static." },
-      { time: 70, text: "We are right where we need to be." },
-      { time: 78, text: "🎵 (Outro fading into ambience) 🎵" }
-    ];
+    // Create deterministic, track-specific pseudo-lyrics so each song shows unique lines
+    const titleText = (trackTitle || "Soothing Music").trim();
+    const seed = titleText.toLowerCase();
 
-    const shivLyrics = [
-      { time: 0, text: "🔱 Om Namah Shivaya 🔱" },
-      { time: 4, text: "Namami Shamishan Nirvan Roopam..." },
-      { time: 9, text: "Vibhum Vyapakam Brahma Veda Swaroopam..." },
-      { time: 15, text: "Nijam Nirgunam Nirvikalpam Niriham..." },
-      { time: 21, text: "Chidakash Akash Vasam Bhajeham..." },
-      { time: 28, text: "✨ (Bells ringing, echoes over Ganga) ✨" },
-      { time: 38, text: "Karala Mahakal Kaal Kripalam..." },
-      { time: 44, text: "Gunagaar Sansar Paar Natoham..." },
-      { time: 50, text: "🔱 Har Har Mahadev 🔱" }
-    ];
+    // A helper to create varied lines from title words
+    const words = seed.split(/[^a-z0-9]+/).filter(Boolean);
+    const center = words.length > 0 ? words[Math.floor(words.length / 2)] : 'vibe';
 
-    if (titleLower.includes("shiv") || titleLower.includes("namami") || titleLower.includes("ghat")) {
-      return shivLyrics;
+    const makeLine = (i) => {
+      if (i === 0) return `🎵 Intro — ${titleText}`;
+      if (i === 1) return `Floating on the ${center} of the melody...`;
+      if (i === 2) return `Hear the ${words[0] || 'beat'} and breathe it in.`;
+      if (i === 3) return `This verse is built from ${words.slice(0,2).join(' ')} echoes.`;
+      if (i === 4) return `Let ${titleText.split(' ')[0]} carry your thoughts.`;
+      if (i === 5) return `✨ Instrumental — waves of ${center} ✨`;
+      if (i === 6) return `Bridge — the rhythm shifts like ${words[words.length-1] || 'light'}.`;
+      if (i === 7) return `A soft hush, then the chorus returns.`;
+      if (i === 8) return `Outro — ${titleText} fades into the night.`;
+      return `...`;
+    };
+
+    const lines = [];
+    // generate timestamped lines spaced by 6-12 seconds depending on index
+    for (let i = 0; i < 9; i++) {
+      const base = i === 0 ? 0 : (i * 8 + (seed.length % 5));
+      lines.push({ time: base, text: makeLine(i) });
     }
-    return genericLyrics;
+
+    // If this looks like a devotional/ghat title, include a small special stanza
+    if (/shiv|namami|ghat|aarti|har har|mahadev/.test(seed)) {
+      lines.splice(1, 0, { time: 4, text: '🔱 Om Namah Shivaya 🔱' });
+    }
+
+    return lines;
   };
 
   // Music Controls
@@ -349,7 +359,21 @@ export const PlayerProvider = ({ children }) => {
       window.ambientEngineReady();
     }
 
-    setCurrentTrack(track);
+    // Attach parsed album and normalized duration (seconds) to the track for UI
+    const parseAlbum = (title) => {
+      if (!title) return null;
+      const t = String(title).trim();
+      const dashParts = t.split(' - ').map(s => s.trim()).filter(Boolean);
+      if (dashParts.length >= 2) return dashParts[1].split('|')[0].trim();
+      const pipeParts = t.split('|').map(s => s.trim()).filter(Boolean);
+      if (pipeParts.length >= 2) return pipeParts[1].split('-')[0].trim();
+      return null;
+    };
+
+    const normalizedDuration = (track.duration && track.duration > 1000) ? Math.round(track.duration / 1000) : 0;
+    const trackWithMeta = { ...track, album: track.album || parseAlbum(track.title), duration: normalizedDuration };
+
+    setCurrentTrack(trackWithMeta);
     setLyrics(generateLyrics(track.title));
     setCurrentLyricIndex(-1);
     setProgress(0);

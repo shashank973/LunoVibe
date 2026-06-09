@@ -53,6 +53,24 @@ export default function MusicPlayer() {
     return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
   };
 
+  // Attempt to extract an album/movie name from YouTube-style titles
+  const getAlbumFromTitle = (title) => {
+    if (!title) return null;
+    const t = String(title).trim();
+    // Common patterns: "Song - Album", "Song - Album | Artist", "Song | Album"
+    const dashParts = t.split(' - ').map(s => s.trim()).filter(Boolean);
+    if (dashParts.length >= 2) {
+      const candidate = dashParts[1].split('|')[0].trim();
+      if (candidate && candidate.length > 1 && candidate.length < 60) return candidate;
+    }
+    const pipeParts = t.split('|').map(s => s.trim()).filter(Boolean);
+    if (pipeParts.length >= 2) {
+      const candidate = pipeParts[1].split('-')[0].trim();
+      if (candidate && candidate.length > 1 && candidate.length < 60) return candidate;
+    }
+    return null;
+  };
+
   const handleProgressBarChange = (e) => {
     seekTo(parseFloat(e.target.value));
   };
@@ -224,6 +242,10 @@ export default function MusicPlayer() {
                   </button>
                 </div>
                 <p style={{ fontSize: '15px', color: '#94a3b8', margin: 0 }}>{currentTrack.artist}</p>
+                {/* Try to show album if available, otherwise attempt to parse from title */}
+                { (currentTrack.album || getAlbumFromTitle(currentTrack.title)) && (
+                  <p style={{ fontSize: '13px', color: '#cbd5e1', margin: 0 }}>{currentTrack.album || getAlbumFromTitle(currentTrack.title)}</p>
+                ) }
                 <span style={{ 
                   fontSize: '10px', 
                   color: 'hsl(var(--primary-mood))', 
