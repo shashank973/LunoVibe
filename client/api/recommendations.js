@@ -1,8 +1,9 @@
-const { CURATED_TRACKS, searchYouTubeCustom } = require('./_lib');
+import { CURATED_TRACKS, searchYouTubeCustom } from './_lib.js';
 
-module.exports = async (req, res) => {
-  const mood = req.query.mood || '';
-  const genre = req.query.genre || '';
+export default async (req, res) => {
+  const url = new URL(req.url, `http://${req.headers.host}`);
+  const mood = url.searchParams.get('mood') || '';
+  const genre = url.searchParams.get('genre') || '';
   let tracks = [...CURATED_TRACKS];
 
   if (mood) tracks = tracks.filter(t => t.moods && t.moods.includes(mood));

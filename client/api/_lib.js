@@ -1,5 +1,5 @@
 // Shared helpers and curated tracks for serverless API (client/api)
-const CURATED_TRACKS = [
+export const CURATED_TRACKS = [
   { id: "h7gyPJUPnK0", title: "Apna Bana Le - Bhediya", artist: "Arijit Singh", genre: "Bollywood", duration: 264000, thumbnail: "https://i.ytimg.com/vi/h7gyPJUPnK0/hqdefault.jpg", moods: ["Romantic", "Chill", "Travel"] },
   { id: "BddP6PYo2gs", title: "Kesariya - Brahmastra", artist: "Arijit Singh", genre: "Bollywood", duration: 292000, thumbnail: "https://i.ytimg.com/vi/BddP6PYo2gs/hqdefault.jpg", moods: ["Romantic","Happy","Travel"] },
   { id: "0WdC47G-WwQ", title: "Kabira - Yeh Jawaani Hai Deewani", artist: "Tochi Raina, Rekha Bhardwaj", genre: "Bollywood", duration: 223000, thumbnail: "https://i.ytimg.com/vi/0WdC47G-WwQ/hqdefault.jpg", moods: ["Chill","Banaras Ghat Vibes","Lonely","Travel"] },
@@ -15,7 +15,7 @@ const CURATED_TRACKS = [
   { id: "Z7FvR3L8H_w", title: "Rinkiya Ke Papa", artist: "Manoj Tiwari", genre: "Bhojpuri", duration: 280000, thumbnail: "https://i.ytimg.com/vi/Z7FvR3L8H_w/hqdefault.jpg", moods: ["Party","Happy"] }
 ];
 
-async function searchYouTubeCustom(query) {
+export async function searchYouTubeCustom(query) {
   try {
     const url = `https://www.youtube.com/results?search_query=${encodeURIComponent(query)}&sp=EgIQAQ%253D%253D`;
     const resp = await fetch(url, { headers: { 'User-Agent': 'Mozilla/5.0', 'Accept-Language': 'en-US' } });
@@ -52,7 +52,7 @@ async function searchYouTubeCustom(query) {
   }
 }
 
-async function getSuggestionsCustom(query) {
+export async function getSuggestionsCustom(query) {
   try {
     const url = `https://suggestqueries.google.com/complete/search?client=youtube&ds=yt&client=firefox&q=${encodeURIComponent(query)}`;
     const resp = await fetch(url, { headers: { 'User-Agent': 'Mozilla/5.0' } });
@@ -64,4 +64,4 @@ async function getSuggestionsCustom(query) {
   }
 }
 
-module.exports = { CURATED_TRACKS, searchYouTubeCustom, getSuggestionsCustom };
+// Note: exported above as named exports

@@ -1,8 +1,8 @@
-const { getSuggestionsCustom } = require('./_lib');
+import { getSuggestionsCustom } from './_lib.js';
 
-module.exports = async (req, res) => {
-  const q = req.query.q || req.url.split('?q=')[1] || '';
-  const query = Array.isArray(q) ? q[0] : q;
+export default async (req, res) => {
+  const url = new URL(req.url, `http://${req.headers.host}`);
+  const query = url.searchParams.get('q') || '';
   if (!query) {
     res.status(200).json([]);
     return;

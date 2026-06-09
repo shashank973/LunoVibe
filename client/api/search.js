@@ -1,7 +1,8 @@
-const { CURATED_TRACKS, searchYouTubeCustom } = require('./_lib');
+import { CURATED_TRACKS, searchYouTubeCustom } from './_lib.js';
 
-module.exports = async (req, res) => {
-  const q = req.query.q || req.url.split('?q=')[1] || '';
+export default async (req, res) => {
+  const url = new URL(req.url, `http://${req.headers.host}`);
+  const q = url.searchParams.get('q') || '';
   const query = Array.isArray(q) ? q[0] : q;
   if (!query) {
     res.status(400).json({ error: "Query parameter 'q' is required" });
