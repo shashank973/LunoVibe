@@ -9,6 +9,7 @@ import Journal from './Journal';
 import FlowZone from './FlowZone';
 
 export default function Dashboard({ user, onUserUpdate }) {
+  const API_BASE = (import.meta.env.VITE_API_URL || '').replace(/\/$/, '');
   const { activeMood, setActiveMood, language, setLanguage, t } = useTheme();
   const {
     searchResults,
@@ -48,7 +49,7 @@ export default function Dashboard({ user, onUserUpdate }) {
 
   // Fetch initial trending tracks on load
   useEffect(() => {
-    fetch('/api/trending')
+    fetch(`${API_BASE}/api/trending`)
       .then(res => res.json())
       .then(data => setTrendingTracks(data))
       .catch(err => console.error("Failed to load trending tracks:", err));
@@ -162,9 +163,9 @@ export default function Dashboard({ user, onUserUpdate }) {
     if (targetQuery) {
       // Trigger background search and load lists
       searchSongs(targetQuery);
-      try {
+        try {
         // Fetch and play first song automatically
-        const res = await fetch(`/api/search?q=${encodeURIComponent(targetQuery)}`);
+        const res = await fetch(`${API_BASE}/api/search?q=${encodeURIComponent(targetQuery)}`);
         const tracks = await res.json();
         if (tracks && tracks.length > 0) {
           setAndPlayQueue(tracks, 0);

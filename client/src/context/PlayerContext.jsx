@@ -3,6 +3,7 @@ import React, { createContext, useContext, useState, useEffect, useRef } from 'r
 const PlayerContext = createContext();
 
 export const PlayerProvider = ({ children }) => {
+  const API_BASE = (import.meta.env.VITE_API_URL || '').replace(/\/$/, '');
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTrack, setCurrentTrack] = useState(null);
   const [queue, setQueue] = useState([]);
@@ -249,7 +250,7 @@ export const PlayerProvider = ({ children }) => {
       
       try {
         const queryVal = `${activeTrack.title} ${activeTrack.artist} audio`;
-        const res = await fetch(`/api/search?q=${encodeURIComponent(queryVal)}`);
+        const res = await fetch(`${API_BASE}/api/search?q=${encodeURIComponent(queryVal)}`);
         const tracks = await res.json();
         
         // Find a different video ID
@@ -481,7 +482,7 @@ export const PlayerProvider = ({ children }) => {
     setSearchQuery(query);
     setSearchLoading(true);
     try {
-      const res = await fetch(`/api/search?q=${encodeURIComponent(query)}`);
+      const res = await fetch(`${API_BASE}/api/search?q=${encodeURIComponent(query)}`);
       const data = await res.json();
       setSearchResults(data);
     } catch (e) {
@@ -497,7 +498,7 @@ export const PlayerProvider = ({ children }) => {
       return;
     }
     try {
-      const res = await fetch(`/api/suggestions?q=${encodeURIComponent(query)}`);
+      const res = await fetch(`${API_BASE}/api/suggestions?q=${encodeURIComponent(query)}`);
       const data = await res.json();
       setSuggestions(data);
     } catch (e) {

@@ -5,6 +5,7 @@ import { ambientEngine } from '../services/ambientEngine';
 import { Mic, MicOff, RefreshCw, X } from 'lucide-react';
 
 export default function VoiceAssistant({ onClose }) {
+  const API_BASE = (import.meta.env.VITE_API_URL || '').replace(/\/$/, '');
   const { playTrack, togglePlay, playNext, searchSongs } = usePlayer();
   const { activeMood, setActiveMood } = useTheme();
 
@@ -148,7 +149,7 @@ export default function VoiceAssistant({ onClose }) {
       const songQuery = cmd.replace('play ', '');
       setFeedback(`Searching for "${songQuery}"...`);
       try {
-        const res = await fetch(`/api/search?q=${encodeURIComponent(songQuery)}`);
+        const res = await fetch(`${API_BASE}/api/search?q=${encodeURIComponent(songQuery)}`);
         const tracks = await res.json();
         if (tracks && tracks.length > 0) {
           playTrack(tracks[0]);
