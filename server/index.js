@@ -4,8 +4,16 @@ import cors from 'cors';
 const app = express();
 const PORT = process.env.PORT || 3001;
 
+// Allow configurable origins via environment variable for production deploys.
+const allowedOrigins = (process.env.ALLOWED_ORIGINS || 'http://localhost:5173,http://127.0.0.1:5173')
+  .split(',')
+  .map(s => s.trim())
+  .filter(Boolean);
+
+console.log('Allowed CORS origins:', allowedOrigins);
+
 app.use(cors({
-  origin: ['http://localhost:5173', 'http://127.0.0.1:5173'],
+  origin: allowedOrigins,
   credentials: true
 }));
 
