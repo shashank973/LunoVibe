@@ -49,10 +49,33 @@ export default function Dashboard({ user, onUserUpdate }) {
 
   // Fetch initial trending tracks on load
   useEffect(() => {
-    fetch(`${API_BASE}/api/trending`)
-      .then(res => res.json())
-      .then(data => setTrendingTracks(data))
-      .catch(err => console.error("Failed to load trending tracks:", err));
+    let mounted = true;
+    const useLocalDirect = import.meta.env.PROD && !import.meta.env.VITE_API_URL;
+    if (useLocalDirect) {
+      // In production without an API base configured, load local curated tracks directly
+      import('../data/curatedTracks').then(mod => {
+        if (mounted) setTrendingTracks(mod.default.slice(0, 12));
+      }).catch(e => {
+        console.error('Failed to load local curated tracks (direct):', e);
+      });
+    } else {
+      fetch(`${API_BASE}/api/trending`)
+        .then(res => {
+          if (!res.ok) throw new Error('API fetch failed');
+          return res.json();
+        })
+        .then(data => { if (mounted) setTrendingTracks(data); })
+        .catch(async err => {
+          console.warn('Trending API failed, using local fallback:', err);
+          try {
+            const local = (await import('../data/curatedTracks')).default;
+            if (mounted) setTrendingTracks(local.slice(0, 12));
+          } catch (e) {
+            console.error('Failed to load local curated tracks:', e);
+          }
+        });
+    }
+    return () => { mounted = false; };
   }, []);
 
   const handleUsernameSave = (e) => {
