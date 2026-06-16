@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import CURATED_TRACKS from '../data/curatedTracks';
 import { usePlayer } from '../context/PlayerContext';
 import { useTheme } from '../context/ThemeContext';
 import { ambientEngine } from '../services/ambientEngine';
@@ -53,11 +54,11 @@ export default function Dashboard({ user, onUserUpdate }) {
     const useLocalDirect = import.meta.env.PROD && !import.meta.env.VITE_API_URL;
     if (useLocalDirect) {
       // In production without an API base configured, load local curated tracks directly
-      import('../data/curatedTracks').then(mod => {
-        if (mounted) setTrendingTracks(mod.default.slice(0, 12));
-      }).catch(e => {
+      try {
+        if (mounted) setTrendingTracks(CURATED_TRACKS.slice(0, 12));
+      } catch (e) {
         console.error('Failed to load local curated tracks (direct):', e);
-      });
+      }
     } else {
       fetch(`${API_BASE}/api/trending`)
         .then(res => {
@@ -68,8 +69,7 @@ export default function Dashboard({ user, onUserUpdate }) {
         .catch(async err => {
           console.warn('Trending API failed, using local fallback:', err);
           try {
-            const local = (await import('../data/curatedTracks')).default;
-            if (mounted) setTrendingTracks(local.slice(0, 12));
+            if (mounted) setTrendingTracks(CURATED_TRACKS.slice(0, 12));
           } catch (e) {
             console.error('Failed to load local curated tracks:', e);
           }
