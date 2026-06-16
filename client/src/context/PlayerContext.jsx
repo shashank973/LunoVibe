@@ -483,10 +483,19 @@ export const PlayerProvider = ({ children }) => {
     setSearchLoading(true);
     try {
       const res = await fetch(`${API_BASE}/api/search?q=${encodeURIComponent(query)}`);
+      if (!res.ok) throw new Error('API search failed');
       const data = await res.json();
       setSearchResults(data);
     } catch (e) {
-      console.error("Failed to search songs:", e);
+      console.warn('Search API failed, falling back to local curated tracks:', e);
+      try {
+        const { default: CURATED } = await import('../data/curatedTracks');
+        const qLower = query.toLowerCase();
+        const filtered = CURATED.filter(t => t.title.toLowerCase().includes(qLower) || t.artist.toLowerCase().includes(qLower));
+        setSearchResults(filtered.length ? filtered : CURATED.slice(0, 8));
+      } catch (err) {
+        console.error('Failed to use local fallback for search:', err);
+      }
     } finally {
       setSearchLoading(false);
     }
