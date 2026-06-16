@@ -3,6 +3,8 @@ import { usePlayer } from '../context/PlayerContext';
 import { useTheme } from '../context/ThemeContext';
 import { ambientEngine } from '../services/ambientEngine';
 import { Mic, MicOff, RefreshCw, X } from 'lucide-react';
+import CURATED_TRACKS from '../data/curatedTracks';
+const API_BASE = (import.meta.env.VITE_API_URL || '').replace(/\/$/, '');
 
 export default function VoiceAssistant({ onClose }) {
   const API_BASE = (import.meta.env.VITE_API_URL || '').replace(/\/$/, '');
@@ -150,6 +152,7 @@ export default function VoiceAssistant({ onClose }) {
       setFeedback(`Searching for "${songQuery}"...`);
       try {
         const res = await fetch(`${API_BASE}/api/search?q=${encodeURIComponent(songQuery)}`);
+        if (!res.ok) throw new Error('API failed');
         const tracks = await res.json();
         if (tracks && tracks.length > 0) {
           playTrack(tracks[0]);
@@ -158,7 +161,15 @@ export default function VoiceAssistant({ onClose }) {
           setFeedback(`Could not find any songs matching "${songQuery}".`);
         }
       } catch (e) {
-        setFeedback("Failed to perform search query via voice.");
+        // Fallback to local curated tracks
+        const qLower = songQuery.toLowerCase();
+        const local = CURATED_TRACKS.filter(t => t.title.toLowerCase().includes(qLower) || t.artist.toLowerCase().includes(qLower));
+        if (local.length > 0) {
+          playTrack(local[0]);
+          setFeedback(`Now playing: "${local[0].title}"`);
+        } else {
+          setFeedback("Failed to perform search query via voice.");
+        }
       }
       return;
     }

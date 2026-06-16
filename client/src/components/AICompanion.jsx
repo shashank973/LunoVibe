@@ -1,6 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useTheme } from '../context/ThemeContext';
 import { usePlayer } from '../context/PlayerContext';
+import CURATED_TRACKS from '../data/curatedTracks';
+
+const API_BASE = (import.meta.env.VITE_API_URL || '').replace(/\/$/, '');
 import { Send, Bot, Sparkles, RefreshCcw } from 'lucide-react';
 
 export default function AICompanion() {
@@ -57,7 +60,8 @@ export default function AICompanion() {
       if (textLower.includes('play') || textLower.includes('recommend') || textLower.includes('song')) {
         // AI recommends a specific song based on mood and triggers playing it!
         try {
-          const res = await fetch(`/api/recommendations?mood=${encodeURIComponent(activeMood)}`);
+          const res = await fetch(`${API_BASE || ''}/api/recommendations?mood=${encodeURIComponent(activeMood)}`);
+          if (!res.ok) throw new Error('API failed');
           const tracks = await res.json();
           if (tracks && tracks.length > 0) {
             const index = Math.floor(Math.random() * tracks.length);
@@ -65,10 +69,26 @@ export default function AICompanion() {
             replyText = `How about we listen to "${recommendedTrack.title}" by ${recommendedTrack.artist}? I have loaded it into your player.`;
             playTrack(recommendedTrack);
           } else {
-            replyText = `I recommend looking up some soothing lo-fi for this ${activeMood} atmosphere.`;
+            // fallback to local curated tracks filtered by mood
+            const local = CURATED_TRACKS.filter(t => t.moods && t.moods.includes(activeMood));
+            if (local.length > 0) {
+              const pick = local[Math.floor(Math.random() * local.length)];
+              replyText = `How about we listen to "${pick.title}" by ${pick.artist}? I have loaded it into your player.`;
+              playTrack(pick);
+            } else {
+              replyText = `I recommend looking up some soothing lo-fi for this ${activeMood} atmosphere.`;
+            }
           }
         } catch (err) {
-          replyText = "I suggest playing some soft classical sitar beats to align your chakras.";
+          // API failed — use local curated fallback
+          const local = CURATED_TRACKS.filter(t => t.moods && t.moods.includes(activeMood));
+          if (local.length > 0) {
+            const pick = local[Math.floor(Math.random() * local.length)];
+            replyText = `How about we listen to "${pick.title}" by ${pick.artist}? I have loaded it into your player.`;
+            playTrack(pick);
+          } else {
+            replyText = "I suggest playing some soft classical sitar beats to align your chakras.";
+          }
         }
       } else if (textLower.includes('banaras') || textLower.includes('kashi') || textLower.includes('ganga')) {
         replyText = "Kashi represents the eternal circle of life. Standing on the ghats, listening to the morning bells, you realize how small our daily worries are. Breathe in the divine energy.";
