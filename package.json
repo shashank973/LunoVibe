@@ -10,7 +10,7 @@
     "dev:client": "npm run dev --prefix client",
     "dev:server": "npm run dev --prefix server",
     "dev": "concurrently \"npm run dev:client\" \"npm run dev:server\"",
-    "build": "npm run build:client",
+    "build": "npm run install:client && npm run build:client",
     "build:client": "npm run build --prefix client"
   },
   "devDependencies": {
